@@ -57,13 +57,15 @@ parser.add_argument('-sync', '--synchronous', dest='synchronous', action='store_
                          'Overwrites args.num_processes as everything is in main thread. '
                          '1 train() function is run and no test()')
 parser.add_argument('-async', '--asynchronous', dest='synchronous', action='store_false')
-parser.set_defaults(synchronous=False)
+parser.set_defaults(synchronous=True)
 
 # Atari arguments. Good example of keeping code modular and allowing algorithms to run everywhere
 parser.add_argument('--atari', dest='atari', action='store_true',
                     help='Run atari env instead with name below instead of ai2thor')
 parser.add_argument('--atari-render', dest='atari_render', action='store_true',
                     help='Render atari')
+# parser.add_argument('--atari-env-name', default='BreakoutDeterministic-v4',
+#                     help='environment to train on (default: BreakoutDeterministic-v4)')
 parser.add_argument('--atari-env-name', default='PongDeterministic-v4',
                     help='environment to train on (default: PongDeterministic-v4)')
 #
