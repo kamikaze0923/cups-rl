@@ -77,6 +77,13 @@ def test(rank, args, shared_model, counter):
                               time.gmtime(time.time() - start_time)),
                 counter.value, counter.value / (time.time() - start_time),
                 reward_sum, episode_length))
+
+            if reward_sum >= args.atari_solved_reward:
+                print("Solved {} at Testing with Reward {}".format(args.atari_env_name, reward_sum))
+                torch.save(shared_model.state_dict(), "solved.pth")
+                env.close()
+                break
+
             reward_sum = 0
             episode_length = 0
             actions.clear()

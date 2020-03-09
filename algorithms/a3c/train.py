@@ -16,11 +16,13 @@ gradients and then optimise with Adam and we go back to the start of the main tr
 import torch
 import torch.nn.functional as F
 import torch.optim as optim
+import sys
 
 from gym_ai2thor.envs.ai2thor_env import AI2ThorEnv
 from algorithms.a3c.envs import create_atari_env
 from algorithms.a3c.model import ActorCritic
 
+import matplotlib.pyplot as plt
 
 def ensure_shared_grads(model, shared_model):
     for param, shared_param in zip(model.parameters(),
@@ -30,7 +32,7 @@ def ensure_shared_grads(model, shared_model):
         shared_param._grad = param.grad
 
 
-def train(rank, args, shared_model, counter, lock, optimizer=None):
+def train(rank, args, shared_model, counter, lock, optimizer):
     torch.manual_seed(args.seed + rank)
 
     if args.atari:
@@ -41,10 +43,6 @@ def train(rank, args, shared_model, counter, lock, optimizer=None):
     env.seed(args.seed + rank)
 
     model = ActorCritic(env.observation_space.shape[0], env.action_space.n, args.frame_dim)
-
-    if optimizer is None:
-        optimizer = optim.Adam(shared_model.parameters(), lr=args.lr)
-
     model.train()
 
     state = env.reset()
@@ -54,14 +52,17 @@ def train(rank, args, shared_model, counter, lock, optimizer=None):
     # monitoring
     total_reward_for_num_steps_list = []
     episode_total_rewards_list = []
-    all_rewards_in_episode = []
     avg_reward_for_num_steps_list = []
 
     total_length = 0
     episode_length = 0
+    n_episode = 0
+    total_reward_for_episode = 0
+    all_rewards_in_episode = []
     while True:
         # Sync with the shared model
         model.load_state_dict(shared_model.state_dict())
+
         if done:
             cx = torch.zeros(1, 256)
             hx = torch.zeros(1, 256)
@@ -87,23 +88,26 @@ def train(rank, args, shared_model, counter, lock, optimizer=None):
             log_prob = log_prob.gather(1, action)
 
             action_int = action.numpy()[0][0].item()
-            state, reward, done, _ = env.step(action_int)
 
+            if args.atari_render and args.atari and args.synchronous:
+                env.render()
+            state, reward, done, _ = env.step(action_int)
             done = done or episode_length >= args.max_episode_length
 
             with lock:
                 counter.value += 1
 
             if done:
-                episode_length = 0
                 total_length -= 1
                 total_reward_for_episode = sum(all_rewards_in_episode)
                 episode_total_rewards_list.append(total_reward_for_episode)
                 all_rewards_in_episode = []
                 state = env.reset()
-                print('Episode Over. Total Length: {}. Total reward for episode: {}'.format(
-                                            total_length,  total_reward_for_episode))
-                print('Step no: {}. total length: {}'.format(episode_length, total_length))
+                print('Process {} Episode {} Over with Length: {} and Reward: {}. Total Trained Length: {}'.format(
+                    rank, n_episode, episode_length, total_reward_for_episode, total_length))
+                sys.stdout.flush()
+                episode_length = 0
+                n_episode += 1
 
             state = torch.from_numpy(state)
             values.append(value)
@@ -114,6 +118,14 @@ def train(rank, args, shared_model, counter, lock, optimizer=None):
             if done:
                 break
 
+        if args.atari and args.synchronous:
+            if total_reward_for_episode >= args.atari_solved_reward:
+                print("Process {} Solved {} with Reward {}".format(rank, args.atari_env_name, args.atari_solved_reward))
+                env.close()
+                break
+
+
+        # print("Update model after {} steps".format(total_length))
         # No interaction with environment below.
         # Monitoring
         total_reward_for_num_steps = sum(rewards)
@@ -151,3 +163,4 @@ def train(rank, args, shared_model, counter, lock, optimizer=None):
 
         ensure_shared_grads(model, shared_model)
         optimizer.step()
+

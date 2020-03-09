@@ -13,6 +13,7 @@ from __future__ import print_function
 
 import argparse
 import os
+import sys
 
 import torch
 import torch.multiprocessing as mp
@@ -42,13 +43,13 @@ parser.add_argument('--max-grad-norm', type=float, default=50,
                     help='value loss coefficient (default: 50)')
 parser.add_argument('--seed', type=int, default=1,
                     help='random seed (default: 1)')
-parser.add_argument('--test-sleep-time', type=int, default=200,
-                    help='number of seconds to wait before testing again (default: 200)')
-parser.add_argument('--num-processes', type=int, default=4,
+parser.add_argument('--test-sleep-time', type=int, default=5,
+                    help='number of seconds to wait before testing again (default: 10)')
+parser.add_argument('--num-processes', type=int, default=16,
                     help='how many training processes to use (default: 1)')
 parser.add_argument('--num-steps', type=int, default=20,
                     help='number of forward steps in A3C (default: 20)')
-parser.add_argument('--max-episode-length', type=int, default=1000,
+parser.add_argument('--max-episode-length', type=int, default=100000,
                     help='maximum length of an episode (default: 1000000)')
 parser.add_argument('--no-shared', default=False,
                     help='use an optimizer without shared momentum.')
@@ -57,23 +58,26 @@ parser.add_argument('-sync', '--synchronous', dest='synchronous', action='store_
                          'Overwrites args.num_processes as everything is in main thread. '
                          '1 train() function is run and no test()')
 parser.add_argument('-async', '--asynchronous', dest='synchronous', action='store_false')
-parser.set_defaults(synchronous=True)
+parser.set_defaults(synchronous=False)
 
 # Atari arguments. Good example of keeping code modular and allowing algorithms to run everywhere
 parser.add_argument('--atari', dest='atari', action='store_true',
                     help='Run atari env instead with name below instead of ai2thor')
 parser.add_argument('--atari-render', dest='atari_render', action='store_true',
                     help='Render atari')
-# parser.add_argument('--atari-env-name', default='BreakoutDeterministic-v4',
-#                     help='environment to train on (default: BreakoutDeterministic-v4)')
-parser.add_argument('--atari-env-name', default='PongDeterministic-v4',
-                    help='environment to train on (default: PongDeterministic-v4)')
+parser.add_argument('--atari-env-name', default='BreakoutDeterministic-v4',
+                    help='environment to train on (default: BreakoutDeterministic-v4)')
+parser.add_argument('--atari-solved-reward', type=int, default=480,
+                    help='stop when episode reward exceed this number')
+# parser.add_argument('--atari-env-name', default='PongDeterministic-v4',
+#                     help='environment to train on (default: PongDeterministic-v4)')
 #
-parser.set_defaults(atari=False)
-parser.set_defaults(atari_render=False)
+parser.set_defaults(atari=True)
+parser.set_defaults(atari_render=True)
 
 
 if __name__ == '__main__':
+    mp.set_start_method("spawn")
     os.environ['OMP_NUM_THREADS'] = '1'
     os.environ['CUDA_VISIBLE_DEVICES'] = ""
 
@@ -98,23 +102,26 @@ if __name__ == '__main__':
         optimizer = my_optim.SharedAdam(shared_model.parameters(), lr=args.lr)
         optimizer.share_memory()
 
-    processes = []
-
+    worker_processes = []
     counter = mp.Value('i', 0)
     lock = mp.Lock()
 
     if not args.synchronous:
-        # test runs continuously and if episode ends, sleeps for args.test_sleep_time seconds
-        p = mp.Process(target=test, args=(args.num_processes, args, shared_model, counter))
-        p.start()
-        processes.append(p)
+
 
         for rank in range(0, args.num_processes):
             p = mp.Process(target=train, args=(rank, args, shared_model, counter, lock, optimizer))
             p.start()
-            processes.append(p)
-        for p in processes:
-            p.join()
+            worker_processes.append(p)
+
+        # test runs continuously and if episode ends, sleeps for args.test_sleep_time seconds
+        manager = mp.Process(target=test, args=(args.num_processes, args, shared_model, counter))
+        manager.start()
+        manager.join()
+
+        for w in worker_processes:
+            w.terminate()
+
     else:
         rank = 0
         # test(args.num_processes, args, shared_model, counter)  # for checking test functionality

@@ -10,6 +10,7 @@ import numpy as np
 from gym.spaces.box import Box
 
 
+
 # Taken from https://github.com/openai/universe-starter-agent
 def create_atari_env(env_id):
     env = gym.make(env_id)
