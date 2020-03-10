@@ -49,7 +49,7 @@ parser.add_argument('--num-processes', type=int, default=16,
                     help='how many training processes to use (default: 1)')
 parser.add_argument('--num-steps', type=int, default=20,
                     help='number of forward steps in A3C (default: 20)')
-parser.add_argument('--max-episode-length', type=int, default=100000,
+parser.add_argument('--max-episode-length', type=int, default=1000,
                     help='maximum length of an episode (default: 1000000)')
 parser.add_argument('--no-shared', default=False,
                     help='use an optimizer without shared momentum.')
@@ -107,8 +107,6 @@ if __name__ == '__main__':
     lock = mp.Lock()
 
     if not args.synchronous:
-
-
         for rank in range(0, args.num_processes):
             p = mp.Process(target=train, args=(rank, args, shared_model, counter, lock, optimizer))
             p.start()

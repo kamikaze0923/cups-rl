@@ -16,6 +16,7 @@ from gym.utils import seeding
 from gym_ai2thor.image_processing import rgb2gray
 from gym_ai2thor.utils import read_config
 import gym_ai2thor.tasks
+import matplotlib.pyplot as plt
 
 ALL_POSSIBLE_ACTIONS = [
     'MoveAhead',
@@ -116,7 +117,7 @@ class AI2ThorEnv(gym.Env):
                     self.build_file_path))
             self.controller.local_executable_path = self.build_file_path
 
-        self.controller.start()
+        # self.controller.start()
 
     def step(self, action, verbose=True):
         if not self.action_space.contains(action):
@@ -230,8 +231,10 @@ class AI2ThorEnv(gym.Env):
 
         self.task.step_num += 1
         state_image = self.preprocess(self.event.frame)
+
         reward, done = self.task.transition_reward(self.event)
         info = {}
+
 
         return state_image, reward, done, info
 

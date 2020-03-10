@@ -22,7 +22,7 @@ from gym_ai2thor.envs.ai2thor_env import AI2ThorEnv
 from algorithms.a3c.envs import create_atari_env
 from algorithms.a3c.model import ActorCritic
 
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
 def ensure_shared_grads(model, shared_model):
     for param, shared_param in zip(model.parameters(),
@@ -86,12 +86,14 @@ def train(rank, args, shared_model, counter, lock, optimizer):
 
             action = prob.multinomial(num_samples=1).detach()
             log_prob = log_prob.gather(1, action)
+            log_probs.append(log_prob)
 
             action_int = action.numpy()[0][0].item()
 
             if args.atari_render and args.atari and args.synchronous:
                 env.render()
             state, reward, done, _ = env.step(action_int)
+
             done = done or episode_length >= args.max_episode_length
 
             with lock:
@@ -111,7 +113,6 @@ def train(rank, args, shared_model, counter, lock, optimizer):
 
             state = torch.from_numpy(state)
             values.append(value)
-            log_probs.append(log_prob)
             rewards.append(reward)
             all_rewards_in_episode.append(reward)
 
