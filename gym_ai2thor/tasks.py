@@ -79,3 +79,53 @@ class PickUpTask(BaseTask):
     def reset(self):
         self.prev_inventory = []
         self.step_num = 0
+
+class PickUpTaskWithTargetReceptacle(BaseTask):
+    """
+    This task consists of picking up a target object. Rewards are only collected if the right
+    object was added to the inventory with the action PickUp (See gym_ai2thor.envs.ai2thor_env for
+    details). Because the agent can only carry 1 object at a time in its inventory, to receive
+    a lot of reward one must learn to put objects down. Optimal behaviour will lead to the agent
+    spamming PickupObject and PutObject near a receptacle. Hear we specify a target receptacle for
+    maximum reward to see if the agent would be able to learn this. target_objects is a dict which
+    contains the target objects which the agent gets reward for picking up and the amount of reward
+    was the value
+    """
+    def __init__(self, **kwargs):
+        super().__init__(kwargs)
+        # check that target objects are not selected as NON pickupables
+        missing_objects = []
+        for obj in kwargs['task']['target_objects'].keys():
+            if obj not in kwargs['pickup_objects']:
+                missing_objects.append(obj)
+        if missing_objects:
+            raise InvalidTaskParams('Error initializing PickUpTask. The objects {} are not '
+                                    'pickupable!'.format(missing_objects))
+
+        self.target_objects = kwargs['task'].get('target_objects', {'Mug': 1})
+        self.prev_inventory = []
+
+    def transition_reward(self, state):
+        reward, done = self.movement_reward, False
+        curr_inventory = state.metadata['inventoryObjects']
+        object_picked_up = not self.prev_inventory and curr_inventory and \
+                           curr_inventory[0]['objectType'] in self.target_objects
+
+        # object_putdown_up = self.prev_inventory and not curr_inventory and \
+        #                    curr_inventory[0]['objectType'] in self.target_objects
+
+        if object_picked_up:
+            # One of the Target objects has been picked up. Add reward from the specific object
+            reward += self.target_objects.get(curr_inventory[0]['objectType'], 0)
+            print('{} reward collected!'.format(reward))
+
+        if self.max_episode_length and self.step_num >= self.max_episode_length:
+            print('Reached maximum episode length: {}'.format(self.step_num))
+            done = True
+
+        self.prev_inventory = state.metadata['inventoryObjects']
+        return reward, done
+
+    def reset(self):
+        self.prev_inventory = []
+        self.step_num = 0

@@ -55,14 +55,14 @@ parser.add_argument('--no-shared', default=False,
                     help='use an optimizer without shared momentum.')
 
 parser.add_argument('--no_cuda', action='store_true')
-parser.set_defaults(no_cuda=True)
+parser.set_defaults(no_cuda=False)
 
 parser.add_argument('-sync', '--synchronous', dest='synchronous', action='store_true',
                     help='Useful for debugging purposes e.g. import pdb; pdb.set_trace(). '
                          'Overwrites args.num_processes as everything is in main thread. '
                          '1 train() function is run and no test()')
 parser.add_argument('-async', '--asynchronous', dest='synchronous', action='store_false')
-parser.set_defaults(synchronous=False)
+parser.set_defaults(synchronous=True)
 
 # Atari arguments. Good example of keeping code modular and allowing algorithms to run everywhere
 parser.add_argument('--atari', dest='atari', action='store_true',
