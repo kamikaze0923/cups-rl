@@ -28,6 +28,8 @@ def test(rank, args, shared_model, counter):
     env.seed(args.seed + rank)
 
     model = ActorCritic(env.observation_space.shape[0], env.action_space.n, args.frame_dim)
+    if args.cuda:
+        model = model.cuda()
 
     model.eval()
 
@@ -55,9 +57,13 @@ def test(rank, args, shared_model, counter):
             hx = hx.detach()
 
         with torch.no_grad():
+            if args.cuda:
+                state = state.cuda()
+                cx = cx.cuda()
+                hx = hx.cuda()
             value, logit, (hx, cx) = model((state.unsqueeze(0).float(), (hx, cx)))
         prob = F.softmax(logit, dim=-1)
-        action = prob.max(1, keepdim=True)[1].numpy()
+        action = prob.max(1, keepdim=True)[1].cpu().numpy()
 
         state, reward, done, _ = env.step(action[0, 0])
         done = done or episode_length >= args.max_episode_length

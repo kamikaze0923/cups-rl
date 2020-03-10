@@ -45,7 +45,7 @@ parser.add_argument('--seed', type=int, default=1,
                     help='random seed (default: 1)')
 parser.add_argument('--test-sleep-time', type=int, default=5,
                     help='number of seconds to wait before testing again (default: 10)')
-parser.add_argument('--num-processes', type=int, default=16,
+parser.add_argument('--num-processes', type=int, default=4,
                     help='how many training processes to use (default: 1)')
 parser.add_argument('--num-steps', type=int, default=20,
                     help='number of forward steps in A3C (default: 20)')
@@ -53,6 +53,10 @@ parser.add_argument('--max-episode-length', type=int, default=1000,
                     help='maximum length of an episode (default: 1000000)')
 parser.add_argument('--no-shared', default=False,
                     help='use an optimizer without shared momentum.')
+
+parser.add_argument('--no_cuda', action='store_true')
+parser.set_defaults(no_cuda=True)
+
 parser.add_argument('-sync', '--synchronous', dest='synchronous', action='store_true',
                     help='Useful for debugging purposes e.g. import pdb; pdb.set_trace(). '
                          'Overwrites args.num_processes as everything is in main thread. '
@@ -72,16 +76,20 @@ parser.add_argument('--atari-solved-reward', type=int, default=480,
 # parser.add_argument('--atari-env-name', default='PongDeterministic-v4',
 #                     help='environment to train on (default: PongDeterministic-v4)')
 #
-parser.set_defaults(atari=True)
+parser.set_defaults(atari=False)
 parser.set_defaults(atari_render=True)
 
 
 if __name__ == '__main__':
     mp.set_start_method("spawn")
     os.environ['OMP_NUM_THREADS'] = '1'
-    os.environ['CUDA_VISIBLE_DEVICES'] = ""
+    # os.environ['CUDA_VISIBLE_DEVICES'] = ""
 
     args = parser.parse_args()
+    args.cuda = not args.no_cuda and torch.cuda.is_available()
+    if args.cuda:
+        print('Using', torch.cuda.get_device_name(0))
+        torch.cuda.init()
 
     torch.manual_seed(args.seed)
     if args.atari:
@@ -92,6 +100,8 @@ if __name__ == '__main__':
         env = AI2ThorEnv(config_dict=args.config_dict)
         args.frame_dim = env.config['resolution'][-1]
     shared_model = ActorCritic(env.observation_space.shape[0], env.action_space.n, args.frame_dim)
+    if args.cuda:
+        shared_model = shared_model.cuda()
     shared_model.share_memory()
 
     env.close()  # above env initialisation was only to find certain params needed

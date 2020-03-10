@@ -209,8 +209,8 @@ class AI2ThorEnv(gym.Env):
                                                             inventory_before, inventory_after)
                 else:
                     inventory_changed_str = ''
-                print('{}: {}. {}'.format(
-                    action_str, interaction_obj['objectType'], inventory_changed_str))
+                # print('{}: {}. {}'.format(
+                #     action_str, interaction_obj['objectType'], inventory_changed_str))
         elif action_str.startswith('Rotate'):
             if self.continuous_movement:
                 # Rotate action
@@ -251,7 +251,7 @@ class AI2ThorEnv(gym.Env):
         return img
 
     def reset(self):
-        print('Resetting environment and starting new episode')
+        # print('Resetting environment and starting new episode')
         self.controller.reset(self.scene_id)
         self.event = self.controller.step(dict(action='Initialize', gridSize=self.gridSize,
                                                cameraY=self.cameraY,

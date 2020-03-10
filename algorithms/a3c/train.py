@@ -43,6 +43,8 @@ def train(rank, args, shared_model, counter, lock, optimizer):
     env.seed(args.seed + rank)
 
     model = ActorCritic(env.observation_space.shape[0], env.action_space.n, args.frame_dim)
+    if args.cuda:
+        model = model.cuda()
     model.train()
 
     state = env.reset()
@@ -78,6 +80,10 @@ def train(rank, args, shared_model, counter, lock, optimizer):
         for step in range(args.num_steps):
             episode_length += 1
             total_length += 1
+            if args.cuda:
+                state = state.cuda()
+                cx = cx.cuda()
+                hx = hx.cuda()
             value, logit, (hx, cx) = model((state.unsqueeze(0).float(), (hx, cx)))
             prob = F.softmax(logit, dim=-1)
             log_prob = F.log_softmax(logit, dim=-1)
@@ -88,7 +94,7 @@ def train(rank, args, shared_model, counter, lock, optimizer):
             log_prob = log_prob.gather(1, action)
             log_probs.append(log_prob)
 
-            action_int = action.numpy()[0][0].item()
+            action_int = action.cpu().numpy()[0][0].item()
 
             if args.atari_render and args.atari and args.synchronous:
                 env.render()
@@ -126,9 +132,6 @@ def train(rank, args, shared_model, counter, lock, optimizer):
                 break
 
 
-        # print("Update model after {} steps".format(total_length))
-        # No interaction with environment below.
-        # Monitoring
         total_reward_for_num_steps = sum(rewards)
         total_reward_for_num_steps_list.append(total_reward_for_num_steps)
         avg_reward_for_num_steps = total_reward_for_num_steps / len(rewards)
@@ -136,6 +139,11 @@ def train(rank, args, shared_model, counter, lock, optimizer):
 
         # Backprop and optimisation
         R = torch.zeros(1, 1)
+        gae = torch.zeros(1, 1)
+        if args.cuda:
+            state = state.cuda()
+            R = R.cuda()
+            gae = gae.cuda()
         if not done:  # to change last reward to predicted value to ....
             value, _, _ = model((state.unsqueeze(0).float(), (hx, cx)))
             R = value.detach()
@@ -144,7 +152,7 @@ def train(rank, args, shared_model, counter, lock, optimizer):
         policy_loss = 0
         value_loss = 0
         # import pdb;pdb.set_trace() # good place to breakpoint to see training cycle
-        gae = torch.zeros(1, 1)
+
         for i in reversed(range(len(rewards))):
             R = args.gamma * R + rewards[i]
             advantage = R - values[i]
