@@ -67,10 +67,10 @@ class PickUpTask(BaseTask):
         if object_picked_up:
             # One of the Target objects has been picked up. Add reward from the specific object
             reward += self.target_objects.get(curr_inventory[0]['objectType'], 0)
-            print('{} reward collected!'.format(reward))
+            # print('{} reward collected!'.format(reward))
 
         if self.max_episode_length and self.step_num >= self.max_episode_length:
-            print('Reached maximum episode length: {}'.format(self.step_num))
+            # print('Reached maximum episode length: {}'.format(self.step_num))
             done = True
 
         self.prev_inventory = state.metadata['inventoryObjects']

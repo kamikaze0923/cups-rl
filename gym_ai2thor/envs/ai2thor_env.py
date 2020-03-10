@@ -209,8 +209,8 @@ class AI2ThorEnv(gym.Env):
                                                             inventory_before, inventory_after)
                 else:
                     inventory_changed_str = ''
-                print('{}: {}. {}'.format(
-                    action_str, interaction_obj['objectType'], inventory_changed_str))
+                # print('{}: {}. {}'.format(
+                #     action_str, interaction_obj['objectType'], inventory_changed_str))
         elif action_str.startswith('Rotate'):
             if self.continuous_movement:
                 # Rotate action
