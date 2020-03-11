@@ -98,8 +98,8 @@ def train(rank, args, shared_model, counter, lock, optimizer):
 
             if args.atari_render and args.atari and args.synchronous:
                 env.render()
-            state, reward, done, _ = env.step(action_int)
 
+            state, reward, done, _ = env.step(action_int, verbose=False)
             done = done or episode_length >= args.max_episode_length
 
             with lock:

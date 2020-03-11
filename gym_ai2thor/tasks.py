@@ -67,7 +67,7 @@ class PickUpTask(BaseTask):
         if object_picked_up:
             # One of the Target objects has been picked up. Add reward from the specific object
             reward += self.target_objects.get(curr_inventory[0]['objectType'], 0)
-            # print('{} reward collected!'.format(reward))
+            print('{} reward collected!'.format(reward))
 
         if self.max_episode_length and self.step_num >= self.max_episode_length:
             # print('Reached maximum episode length: {}'.format(self.step_num))
@@ -80,7 +80,7 @@ class PickUpTask(BaseTask):
         self.prev_inventory = []
         self.step_num = 0
 
-class PickUpTaskWithTargetReceptacle(BaseTask):
+class PickUpAndFindReceptacleTask(BaseTask):
     """
     This task consists of picking up a target object. Rewards are only collected if the right
     object was added to the inventory with the action PickUp (See gym_ai2thor.envs.ai2thor_env for
@@ -102,7 +102,8 @@ class PickUpTaskWithTargetReceptacle(BaseTask):
             raise InvalidTaskParams('Error initializing PickUpTask. The objects {} are not '
                                     'pickupable!'.format(missing_objects))
 
-        self.target_objects = kwargs['task'].get('target_objects', {'Mug': 1})
+        self.target_objects = kwargs['task'].get('target_objects', {})
+        self.target_receptacles = kwargs['task'].get('target_receptacles', {})
         self.prev_inventory = []
 
     def transition_reward(self, state):
@@ -111,16 +112,26 @@ class PickUpTaskWithTargetReceptacle(BaseTask):
         object_picked_up = not self.prev_inventory and curr_inventory and \
                            curr_inventory[0]['objectType'] in self.target_objects
 
-        # object_putdown_up = self.prev_inventory and not curr_inventory and \
-        #                    curr_inventory[0]['objectType'] in self.target_objects
+        object_put_down = self.prev_inventory and not curr_inventory and \
+                           self.prev_inventory[0]['objectType'] in self.target_objects
+
 
         if object_picked_up:
             # One of the Target objects has been picked up. Add reward from the specific object
-            reward += self.target_objects.get(curr_inventory[0]['objectType'], 0)
-            print('{} reward collected!'.format(reward))
+            special_reward = self.target_objects.get(curr_inventory[0]['objectType'], 0)
+            print('Pick up {}, {} reward collected!'.format(curr_inventory[0]['objectType'], special_reward))
+            reward += special_reward
+
+        if object_put_down:
+            # One of the Target objects has been put down. Check the receptacle and add reward from the specific
+            # receptacle
+            receptacle = state.metadata["lastObjectPutReceptacle"]['objectType']
+            special_reward = self.target_receptacles.get(receptacle, 0)
+            print('Put down to {}, {} reward collected!'.format(receptacle, special_reward))
+            reward += special_reward
 
         if self.max_episode_length and self.step_num >= self.max_episode_length:
-            print('Reached maximum episode length: {}'.format(self.step_num))
+            # print('Reached maximum episode length: {}'.format(self.step_num))
             done = True
 
         self.prev_inventory = state.metadata['inventoryObjects']

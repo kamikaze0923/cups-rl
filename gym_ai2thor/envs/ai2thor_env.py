@@ -44,7 +44,7 @@ class AI2ThorEnv(gym.Env):
     """
     Wrapper base class
     """
-    def __init__(self, seed=None, config_file='config_files/config_example.json', config_dict=None):
+    def __init__(self, seed=None, config_file='config_files/config_example2.json', config_dict=None):
         """
         :param seed:         (int)   Random seed
         :param config_file:  (str)   Path to environment configuration file. Either absolute or
@@ -141,7 +141,8 @@ class AI2ThorEnv(gym.Env):
                         # look for closest receptacle to put object from inventory
                         closest_receptacle_to_put_object_in = obj['receptacle'] and \
                                                               obj['distance'] < distance \
-                                        and obj['objectType'] in self.objects['receptacles']
+                                        and obj['objectType'] in self.objects['receptacles']\
+                                        and (not obj['openable'] or (obj['openable'] and obj['isOpen']))
                         if closest_receptacle_to_put_object_in:
                             closest_receptacle = obj
                             distance = closest_receptacle['distance']
@@ -207,10 +208,12 @@ class AI2ThorEnv(gym.Env):
                 if action_str in ['PutObject', 'PickupObject']:
                     inventory_changed_str = 'Inventory before/after: {}/{}.'.format(
                                                             inventory_before, inventory_after)
+                    if action_str == 'PutObject':
+                        inventory_changed_str += " To Receptacle {}.".format(closest_receptacle["objectType"])
                 else:
                     inventory_changed_str = ''
-                # print('{}: {}. {}'.format(
-                #     action_str, interaction_obj['objectType'], inventory_changed_str))
+                print('{}: {}. {}'.format(
+                    action_str, interaction_obj['objectType'], inventory_changed_str))
         elif action_str.startswith('Rotate'):
             if self.continuous_movement:
                 # Rotate action
@@ -234,7 +237,6 @@ class AI2ThorEnv(gym.Env):
 
         reward, done = self.task.transition_reward(self.event)
         info = {}
-
 
         return state_image, reward, done, info
 

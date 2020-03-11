@@ -1,17 +1,17 @@
 {
-    "render_options": {"depth": true},
     "open_close_interaction": true,
     "pickup_put_interaction": true,
     "pickup_objects": [
-        "Mug"
+        "Plate",
+        "Apple"
     ],
     "acceptable_receptacles": [
         "CounterTop",
-        "TableTop",
-        "Sink"
+        "Microwave"
     ],
     "openable_objects": [
-        "Microwave"
+        "Microwave",
+        "Cabinet"
     ],
     "scene_id": "FloorPlan28",
     "grayscale": true,
@@ -21,7 +21,8 @@
     "continuous_movement": false,
     "build_file_name": false,
     "task": {
-        "task_name": "PickUpTaskWithTargetReceptacle",
-        "target_objects": {"Mug": 1}
+        "task_name": "PickUpAndFindReceptacleTask",
+        "target_objects": {"Apple": 1, "Plate": 2},
+        "target_receptacles": {"CounterTop": 1, "Microwave": 2}
     }
 }

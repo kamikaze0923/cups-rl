@@ -1,14 +1,11 @@
 {
-    "render_options": {"depth": true},
     "open_close_interaction": true,
     "pickup_put_interaction": true,
     "pickup_objects": [
         "Mug"
     ],
     "acceptable_receptacles": [
-        "CounterTop",
-        "TableTop",
-        "Sink"
+        "CounterTop"
     ],
     "openable_objects": [
         "Microwave"
