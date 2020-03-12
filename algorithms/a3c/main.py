@@ -43,13 +43,13 @@ parser.add_argument('--max-grad-norm', type=float, default=50,
                     help='value loss coefficient (default: 50)')
 parser.add_argument('--seed', type=int, default=1,
                     help='random seed (default: 1)')
-parser.add_argument('--test-sleep-time', type=int, default=5,
+parser.add_argument('--test-sleep-time', type=int, default=10,
                     help='number of seconds to wait before testing again (default: 10)')
 parser.add_argument('--num-processes', type=int, default=8,
                     help='how many training processes to use (default: 1)')
 parser.add_argument('--num-steps', type=int, default=20,
                     help='number of forward steps in A3C (default: 20)')
-parser.add_argument('--max-episode-length', type=int, default=1000,
+parser.add_argument('--max-episode-length', type=int, default=100,
                     help='maximum length of an episode (default: 1000000)')
 parser.add_argument('--no-shared', default=False,
                     help='use an optimizer without shared momentum.')
@@ -62,7 +62,9 @@ parser.add_argument('-sync', '--synchronous', dest='synchronous', action='store_
                          'Overwrites args.num_processes as everything is in main thread. '
                          '1 train() function is run and no test()')
 parser.add_argument('-async', '--asynchronous', dest='synchronous', action='store_false')
-parser.set_defaults(synchronous=True)
+parser.add_argument('--solved-reward', type=int, default=5000,
+                    help='stop when episode reward exceed this number')
+parser.set_defaults(synchronous=False)
 
 # Atari arguments. Good example of keeping code modular and allowing algorithms to run everywhere
 parser.add_argument('--atari', dest='atari', action='store_true',
@@ -71,8 +73,7 @@ parser.add_argument('--atari-render', dest='atari_render', action='store_true',
                     help='Render atari')
 parser.add_argument('--atari-env-name', default='BreakoutDeterministic-v4',
                     help='environment to train on (default: BreakoutDeterministic-v4)')
-parser.add_argument('--atari-solved-reward', type=int, default=480,
-                    help='stop when episode reward exceed this number')
+
 # parser.add_argument('--atari-env-name', default='PongDeterministic-v4',
 #                     help='environment to train on (default: PongDeterministic-v4)')
 #

@@ -125,9 +125,9 @@ def train(rank, args, shared_model, counter, lock, optimizer):
             if done:
                 break
 
-        if args.atari and args.synchronous:
-            if total_reward_for_episode >= args.atari_solved_reward:
-                print("Process {} Solved {} with Reward {}".format(rank, args.atari_env_name, args.atari_solved_reward))
+        if args.synchronous:
+            if total_reward_for_episode >= args.solved_reward:
+                print("Process {} Solved with Reward {}".format(rank, total_reward_for_episode))
                 env.close()
                 break
 

@@ -55,10 +55,10 @@ class PickUpTask(BaseTask):
             raise InvalidTaskParams('Error initializing PickUpTask. The objects {} are not '
                                     'pickupable!'.format(missing_objects))
 
-        self.target_objects = kwargs['task'].get('target_objects', {'Mug': 1})
+        self.target_objects = kwargs['task'].get('target_objects', {})
         self.prev_inventory = []
 
-    def transition_reward(self, state):
+    def transition_reward(self, state, action_str=None):
         reward, done = self.movement_reward, False
         curr_inventory = state.metadata['inventoryObjects']
         object_picked_up = not self.prev_inventory and curr_inventory and \
@@ -104,9 +104,11 @@ class PickUpAndFindReceptacleTask(BaseTask):
 
         self.target_objects = kwargs['task'].get('target_objects', {})
         self.target_receptacles = kwargs['task'].get('target_receptacles', {})
+        self.target_receptacles_need_open = kwargs['task'].get('target_receptacles_need_open', {})
+        self.action_fail_penalty= -0.5
         self.prev_inventory = []
 
-    def transition_reward(self, state):
+    def transition_reward(self, state, action_str=None):
         reward, done = self.movement_reward, False
         curr_inventory = state.metadata['inventoryObjects']
         object_picked_up = not self.prev_inventory and curr_inventory and \
@@ -114,7 +116,6 @@ class PickUpAndFindReceptacleTask(BaseTask):
 
         object_put_down = self.prev_inventory and not curr_inventory and \
                            self.prev_inventory[0]['objectType'] in self.target_objects
-
 
         if object_picked_up:
             # One of the Target objects has been picked up. Add reward from the specific object
@@ -128,6 +129,31 @@ class PickUpAndFindReceptacleTask(BaseTask):
             receptacle = state.metadata["lastObjectPutReceptacle"]['objectType']
             special_reward = self.target_receptacles.get(receptacle, 0)
             print('Put down to {}, {} reward collected!'.format(receptacle, special_reward))
+            reward += special_reward
+
+        if (action_str == "PutObject" and not object_put_down) or\
+                (action_str == "PickupObject" and not object_picked_up):
+            print('Fail to {}, {} reward collected!'.format(action_str, self.action_fail_penalty))
+            reward += self.action_fail_penalty
+
+        if action_str == "OpenObject":
+            opened_object = state.metadata["lastObjectOpened"]
+            if opened_object is None:
+                print('Fail to {}, {} reward collected!'.format(action_str, self.action_fail_penalty))
+                special_reward = self.action_fail_penalty
+            else:
+                special_reward = self.target_receptacles_need_open.get(opened_object['objectType'], 0)
+                print('Opened {}, {} reward collected!'.format(opened_object['objectType'], special_reward))
+            reward += special_reward
+
+        if action_str == "CloseObject":
+            opened_object = state.metadata["lastObjectClosed"]
+            if opened_object is None:
+                print('Fail to {}, {} reward collected!'.format(action_str, self.action_fail_penalty))
+                special_reward = self.action_fail_penalty
+            else:
+                special_reward = - self.target_receptacles_need_open.get(opened_object['objectType'], 0)
+                print('Closed {}, {} reward collected!'.format(opened_object['objectType'], special_reward))
             reward += special_reward
 
         if self.max_episode_length and self.step_num >= self.max_episode_length:

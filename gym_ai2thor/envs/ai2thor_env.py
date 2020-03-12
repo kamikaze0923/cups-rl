@@ -235,7 +235,7 @@ class AI2ThorEnv(gym.Env):
         self.task.step_num += 1
         state_image = self.preprocess(self.event.frame)
 
-        reward, done = self.task.transition_reward(self.event)
+        reward, done = self.task.transition_reward(self.event, action_str)
         info = {}
 
         return state_image, reward, done, info

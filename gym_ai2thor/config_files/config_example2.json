@@ -23,6 +23,7 @@
     "task": {
         "task_name": "PickUpAndFindReceptacleTask",
         "target_objects": {"Apple": 1, "Plate": 2},
-        "target_receptacles": {"CounterTop": 1, "Microwave": 2}
+        "target_receptacles": {"CounterTop": 1, "Microwave": 5},
+        "target_receptacles_need_open": {"Microwave": 10}
     }
 }
