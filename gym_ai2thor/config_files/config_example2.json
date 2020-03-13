@@ -2,28 +2,26 @@
     "open_close_interaction": true,
     "pickup_put_interaction": true,
     "pickup_objects": [
-        "Plate",
-        "Apple"
+        "Cup"
     ],
     "acceptable_receptacles": [
         "CounterTop",
         "Microwave"
     ],
     "openable_objects": [
-        "Microwave",
-        "Cabinet"
+        "Microwave"
     ],
     "scene_id": "FloorPlan28",
     "grayscale": true,
     "resolution": [128, 128],
     "cameraY": 0.0,
-    "gridSize": 0.1,
+    "gridSize": 0.8,
     "continuous_movement": false,
     "build_file_name": false,
     "task": {
         "task_name": "PickUpAndFindReceptacleTask",
-        "target_objects": {"Apple": 1, "Plate": 2},
-        "target_receptacles": {"CounterTop": 1, "Microwave": 5},
-        "target_receptacles_need_open": {"Microwave": 10}
+        "target_objects": {"Cup": 1},
+        "target_receptacles": {"CounterTop": -1, "Microwave": 1},
+        "target_receptacles_need_open": {"Microwave": 1}
     }
 }

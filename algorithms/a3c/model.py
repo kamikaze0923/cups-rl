@@ -13,7 +13,7 @@ import torch.nn.functional as F
 
 
 def calculate_lstm_input_size_after_4_conv_layers(frame_dim, stride=2, kernel_size=3, padding=1,
-                                     num_filters=32):
+                                     num_filters=8):
     """
     Assumes square resolution image. Find LSTM size after 4 conv layers below in A3C using regular
     Convolution math. For example:
@@ -71,18 +71,18 @@ class ActorCritic(torch.nn.Module):
 
     def __init__(self, num_input_channels, num_outputs, frame_dim):
         super(ActorCritic, self).__init__()
-        self.conv1 = nn.Conv2d(num_input_channels, 32, 3, stride=2, padding=1)
-        self.conv2 = nn.Conv2d(32, 32, 3, stride=2, padding=1)
-        self.conv3 = nn.Conv2d(32, 32, 3, stride=2, padding=1)
-        self.conv4 = nn.Conv2d(32, 32, 3, stride=2, padding=1)
+        self.conv1 = nn.Conv2d(num_input_channels, 64, 3, stride=2, padding=1)
+        self.conv2 = nn.Conv2d(64, 32, 3, stride=2, padding=1)
+        self.conv3 = nn.Conv2d(32, 16, 3, stride=2, padding=1)
+        self.conv4 = nn.Conv2d(16, 8, 3, stride=2, padding=1)
 
         # assumes square image
         self.lstm_cell_size = calculate_lstm_input_size_after_4_conv_layers(frame_dim)
 
-        self.lstm = nn.LSTMCell(self.lstm_cell_size, 256)  # for 128x128 input
+        self.lstm = nn.LSTMCell(self.lstm_cell_size, 64)  # for 128x128 input
 
-        self.critic_linear = nn.Linear(256, 1)
-        self.actor_linear = nn.Linear(256, num_outputs)
+        self.critic_linear = nn.Linear(64, 1)
+        self.actor_linear = nn.Linear(64, num_outputs)
 
         self.apply(weights_init)
         self.actor_linear.weight.data = normalized_columns_initializer(

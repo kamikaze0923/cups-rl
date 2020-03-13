@@ -16,7 +16,7 @@ from gym.utils import seeding
 from gym_ai2thor.image_processing import rgb2gray
 from gym_ai2thor.utils import read_config
 import gym_ai2thor.tasks
-import matplotlib.pyplot as plt
+
 
 ALL_POSSIBLE_ACTIONS = [
     'MoveAhead',

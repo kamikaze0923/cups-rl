@@ -50,8 +50,8 @@ def test(rank, args, shared_model, counter):
         # Sync with the shared model
         if done:
             model.load_state_dict(shared_model.state_dict())
-            cx = torch.zeros(1, 256)
-            hx = torch.zeros(1, 256)
+            cx = torch.zeros(1, 64)
+            hx = torch.zeros(1, 64)
         else:
             cx = cx.detach()
             hx = hx.detach()

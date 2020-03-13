@@ -133,13 +133,13 @@ class PickUpAndFindReceptacleTask(BaseTask):
 
         if (action_str == "PutObject" and not object_put_down) or\
                 (action_str == "PickupObject" and not object_picked_up):
-            print('Fail to {}, {} reward collected!'.format(action_str, self.action_fail_penalty))
+            # print('Fail to {}, {} reward collected!'.format(action_str, self.action_fail_penalty))
             reward += self.action_fail_penalty
 
         if action_str == "OpenObject":
             opened_object = state.metadata["lastObjectOpened"]
             if opened_object is None:
-                print('Fail to {}, {} reward collected!'.format(action_str, self.action_fail_penalty))
+                # print('Fail to {}, {} reward collected!'.format(action_str, self.action_fail_penalty))
                 special_reward = self.action_fail_penalty
             else:
                 special_reward = self.target_receptacles_need_open.get(opened_object['objectType'], 0)
@@ -149,7 +149,7 @@ class PickUpAndFindReceptacleTask(BaseTask):
         if action_str == "CloseObject":
             opened_object = state.metadata["lastObjectClosed"]
             if opened_object is None:
-                print('Fail to {}, {} reward collected!'.format(action_str, self.action_fail_penalty))
+                # print('Fail to {}, {} reward collected!'.format(action_str, self.action_fail_penalty))
                 special_reward = self.action_fail_penalty
             else:
                 special_reward = - self.target_receptacles_need_open.get(opened_object['objectType'], 0)

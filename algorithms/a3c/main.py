@@ -35,7 +35,7 @@ parser.add_argument('--gamma', type=float, default=0.99,
                     help='discount factor for rewards (default: 0.99)')
 parser.add_argument('--tau', type=float, default=1.00,
                     help='parameter for GAE (default: 1.00)')
-parser.add_argument('--entropy-coef', type=float, default=0.01,
+parser.add_argument('--entropy-coef', type=float, default=0.1,
                     help='entropy term coefficient (default: 0.01)')
 parser.add_argument('--value-loss-coef', type=float, default=0.5,
                     help='value loss coefficient (default: 0.5)')
@@ -62,7 +62,7 @@ parser.add_argument('-sync', '--synchronous', dest='synchronous', action='store_
                          'Overwrites args.num_processes as everything is in main thread. '
                          '1 train() function is run and no test()')
 parser.add_argument('-async', '--asynchronous', dest='synchronous', action='store_false')
-parser.add_argument('--solved-reward', type=int, default=5000,
+parser.add_argument('--solved-reward', type=int, default=80,
                     help='stop when episode reward exceed this number')
 parser.set_defaults(synchronous=False)
 
