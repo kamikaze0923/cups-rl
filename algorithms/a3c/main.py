@@ -49,7 +49,7 @@ parser.add_argument('--num-processes', type=int, default=8,
                     help='how many training processes to use (default: 1)')
 parser.add_argument('--num-steps', type=int, default=20,
                     help='number of forward steps in A3C (default: 20)')
-parser.add_argument('--max-episode-length', type=int, default=100,
+parser.add_argument('--max-episode-length', type=int, default=1000,
                     help='maximum length of an episode (default: 1000000)')
 parser.add_argument('--no-shared', default=False,
                     help='use an optimizer without shared momentum.')
@@ -66,9 +66,9 @@ parser.add_argument('--solved-reward', type=int, default=80,
                     help='stop when episode reward exceed this number')
 parser.add_argument('--model', action='store_false',
                     help='load the model for test')
-parser.set_defaults(model=True)
+parser.set_defaults(model=False)
 
-parser.set_defaults(synchronous=False)
+parser.set_defaults(synchronous=True)
 
 # Atari arguments. Good example of keeping code modular and allowing algorithms to run everywhere
 parser.add_argument('--atari', dest='atari', action='store_true',

@@ -44,7 +44,7 @@ class AI2ThorEnv(gym.Env):
     """
     Wrapper base class
     """
-    def __init__(self, seed=None, config_file='config_files/config_example2.json', config_dict=None):
+    def __init__(self, seed=None, config_file='config_files/config_example3.json', config_dict=None):
         """
         :param seed:         (int)   Random seed
         :param config_file:  (str)   Path to environment configuration file. Either absolute or

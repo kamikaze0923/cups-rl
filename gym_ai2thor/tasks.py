@@ -166,3 +166,37 @@ class PickUpAndFindReceptacleTask(BaseTask):
     def reset(self):
         self.prev_inventory = []
         self.step_num = 0
+
+
+class ExploreAllObjects(BaseTask):
+    """
+    This task consists of finding all objects in the enviorment.
+    """
+    def __init__(self, **kwargs):
+        super().__init__(kwargs)
+        self.target_objects = kwargs['task'].get('target_objects', {})
+        self.discoverd = set()
+
+    def transition_reward(self, state, action_str=None):
+        reward, done = self.movement_reward, False
+        for obj in state.metadata['objects']:
+            assert obj['name'] in self.target_objects
+            if obj['visible'] and obj['name'] not in self.discoverd:
+                self.discoverd.add(obj['name'])
+                print("Found {} at {}, {}, {}".format(obj['name'], obj['position']['x'], obj['position']['y'], obj['position']['z']))
+                reward += self.target_objects.get(obj['name'], 0)
+
+        if self.max_episode_length and self.step_num >= self.max_episode_length or len(self.discoverd) == len(self.target_objects):
+            if self.max_episode_length and self.step_num >= self.max_episode_length:
+                print('Reached maximum episode length: {}'.format(self.step_num))
+            else:
+                print("Used {} steps to find all objects".format(self.step_num))
+                reward += 50
+            print('Totally found objects {}/{}'.format(len(self.discoverd), len(self.target_objects)))
+            done = True
+
+        return reward, done
+
+    def reset(self):
+        self.discoverd = set()
+        self.step_num = 0
