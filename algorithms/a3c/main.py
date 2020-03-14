@@ -66,9 +66,9 @@ parser.add_argument('--solved-reward', type=int, default=80,
                     help='stop when episode reward exceed this number')
 parser.add_argument('--model', action='store_false',
                     help='load the model for test')
-parser.set_defaults(model=False)
+parser.set_defaults(model=True)
 
-parser.set_defaults(synchronous=True)
+parser.set_defaults(synchronous=False)
 
 # Atari arguments. Good example of keeping code modular and allowing algorithms to run everywhere
 parser.add_argument('--atari', dest='atari', action='store_true',
