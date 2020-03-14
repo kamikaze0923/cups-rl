@@ -63,7 +63,7 @@ def test(rank, args, shared_model, counter):
                 hx = hx.cuda()
             value, logit, (hx, cx) = model((state.unsqueeze(0).float(), (hx, cx)))
         prob = F.softmax(logit, dim=-1)
-        log_prob = F.log_softmax(logit, dim=-1)
+        # log_prob = F.log_softmax(logit, dim=-1)
         # print(prob)
         # entropy = -(log_prob * prob).sum(1, keepdim=True)
         # print(prob.max(1, keepdim=True)[0].cpu().numpy())
