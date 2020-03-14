@@ -62,7 +62,7 @@ parser.add_argument('-sync', '--synchronous', dest='synchronous', action='store_
                          'Overwrites args.num_processes as everything is in main thread. '
                          '1 train() function is run and no test()')
 parser.add_argument('-async', '--asynchronous', dest='synchronous', action='store_false')
-parser.add_argument('--solved-reward', type=int, default=80,
+parser.add_argument('--solved-reward', type=int, default=89,
                     help='stop when episode reward exceed this number')
 parser.add_argument('--model', action='store_false',
                     help='load the model for test')
