@@ -105,7 +105,6 @@ class PickUpAndFindReceptacleTask(BaseTask):
         self.target_objects = kwargs['task'].get('target_objects', {})
         self.target_receptacles = kwargs['task'].get('target_receptacles', {})
         self.target_receptacles_need_open = kwargs['task'].get('target_receptacles_need_open', {})
-        self.action_fail_penalty= -0.5
         self.prev_inventory = []
 
     def transition_reward(self, state, action_str=None):
@@ -131,29 +130,15 @@ class PickUpAndFindReceptacleTask(BaseTask):
             # print('Put down to {}, {} reward collected!'.format(receptacle, special_reward))
             reward += special_reward
 
-        if (action_str == "PutObject" and not object_put_down) or\
-                (action_str == "PickupObject" and not object_picked_up):
-            # print('Fail to {}, {} reward collected!'.format(action_str, self.action_fail_penalty))
-            reward += self.action_fail_penalty
 
-        if action_str == "OpenObject":
-            opened_object = state.metadata["lastObjectOpened"]
-            if opened_object is None:
-                # print('Fail to {}, {} reward collected!'.format(action_str, self.action_fail_penalty))
-                special_reward = self.action_fail_penalty
-            else:
-                special_reward = self.target_receptacles_need_open.get(opened_object['objectType'], 0)
-                # print('Opened {}, {} reward collected!'.format(opened_object['objectType'], special_reward))
+        if action_str == "OpenObject" and state.metadata["lastObjectOpened"] is not None:
+            special_reward = self.target_receptacles_need_open.get(state.metadata["lastObjectOpened"]['objectType'], 0)
+            # print('Opened {}, {} reward collected!'.format(opened_object['objectType'], special_reward))
             reward += special_reward
 
-        if action_str == "CloseObject":
-            opened_object = state.metadata["lastObjectClosed"]
-            if opened_object is None:
-                # print('Fail to {}, {} reward collected!'.format(action_str, self.action_fail_penalty))
-                special_reward = self.action_fail_penalty
-            else:
-                special_reward = - self.target_receptacles_need_open.get(opened_object['objectType'], 0)
-                # print('Closed {}, {} reward collected!'.format(opened_object['objectType'], special_reward))
+        if action_str == "CloseObject" and state.metadata["lastObjectClosed"] is not None:
+            special_reward = - self.target_receptacles_need_open.get(state.metadata["lastObjectOpened"]['objectType'], 0)
+            # print('Closed {}, {} reward collected!'.format(opened_object['objectType'], special_reward))
             reward += special_reward
 
         if self.max_episode_length and self.step_num >= self.max_episode_length:
