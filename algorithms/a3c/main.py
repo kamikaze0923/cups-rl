@@ -64,6 +64,10 @@ parser.add_argument('-sync', '--synchronous', dest='synchronous', action='store_
 parser.add_argument('-async', '--asynchronous', dest='synchronous', action='store_false')
 parser.add_argument('--solved-reward', type=int, default=80,
                     help='stop when episode reward exceed this number')
+parser.add_argument('--model', action='store_false',
+                    help='load the model for test')
+parser.set_defaults(model=True)
+
 parser.set_defaults(synchronous=False)
 
 # Atari arguments. Good example of keeping code modular and allowing algorithms to run everywhere
@@ -101,6 +105,8 @@ if __name__ == '__main__':
         env = AI2ThorEnv(config_dict=args.config_dict)
         args.frame_dim = env.config['resolution'][-1]
     shared_model = ActorCritic(env.observation_space.shape[0], env.action_space.n, args.frame_dim)
+    if args.model:
+        shared_model.load_state_dict(torch.load("solved_ai2thor.pth"))
     if args.cuda:
         shared_model = shared_model.cuda()
     shared_model.share_memory()
@@ -118,10 +124,11 @@ if __name__ == '__main__':
     lock = mp.Lock()
 
     if not args.synchronous:
-        for rank in range(0, args.num_processes):
-            p = mp.Process(target=train, args=(rank, args, shared_model, counter, lock, optimizer))
-            p.start()
-            worker_processes.append(p)
+        if not args.model:
+            for rank in range(0, args.num_processes):
+                p = mp.Process(target=train, args=(rank, args, shared_model, counter, lock, optimizer))
+                p.start()
+                worker_processes.append(p)
 
         # test runs continuously and if episode ends, sleeps for args.test_sleep_time seconds
         manager = mp.Process(target=test, args=(args.num_processes, args, shared_model, counter))

@@ -65,7 +65,8 @@ def test(rank, args, shared_model, counter):
         prob = F.softmax(logit, dim=-1)
         action = prob.max(1, keepdim=True)[1].cpu().numpy()
 
-        state, reward, done, _ = env.step(action[0, 0])
+
+        state, reward, done, _ = env.step(action[0, 0], verbose=False)
         done = done or episode_length >= args.max_episode_length
         reward_sum += reward
 

@@ -120,7 +120,7 @@ class PickUpAndFindReceptacleTask(BaseTask):
         if object_picked_up:
             # One of the Target objects has been picked up. Add reward from the specific object
             special_reward = self.target_objects.get(curr_inventory[0]['objectType'], 0)
-            print('Pick up {}, {} reward collected!'.format(curr_inventory[0]['objectType'], special_reward))
+            # print('Pick up {}, {} reward collected!'.format(curr_inventory[0]['objectType'], special_reward))
             reward += special_reward
 
         if object_put_down:
@@ -128,7 +128,7 @@ class PickUpAndFindReceptacleTask(BaseTask):
             # receptacle
             receptacle = state.metadata["lastObjectPutReceptacle"]['objectType']
             special_reward = self.target_receptacles.get(receptacle, 0)
-            print('Put down to {}, {} reward collected!'.format(receptacle, special_reward))
+            # print('Put down to {}, {} reward collected!'.format(receptacle, special_reward))
             reward += special_reward
 
         if (action_str == "PutObject" and not object_put_down) or\
@@ -143,7 +143,7 @@ class PickUpAndFindReceptacleTask(BaseTask):
                 special_reward = self.action_fail_penalty
             else:
                 special_reward = self.target_receptacles_need_open.get(opened_object['objectType'], 0)
-                print('Opened {}, {} reward collected!'.format(opened_object['objectType'], special_reward))
+                # print('Opened {}, {} reward collected!'.format(opened_object['objectType'], special_reward))
             reward += special_reward
 
         if action_str == "CloseObject":
@@ -153,7 +153,7 @@ class PickUpAndFindReceptacleTask(BaseTask):
                 special_reward = self.action_fail_penalty
             else:
                 special_reward = - self.target_receptacles_need_open.get(opened_object['objectType'], 0)
-                print('Closed {}, {} reward collected!'.format(opened_object['objectType'], special_reward))
+                # print('Closed {}, {} reward collected!'.format(opened_object['objectType'], special_reward))
             reward += special_reward
 
         if self.max_episode_length and self.step_num >= self.max_episode_length:

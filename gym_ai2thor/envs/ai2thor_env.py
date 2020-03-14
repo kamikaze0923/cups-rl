@@ -106,7 +106,7 @@ class AI2ThorEnv(gym.Env):
         except Exception as e:
             raise ValueError('Error occurred while creating task. Exception: {}'.format(e))
         # Start ai2thor
-        self.controller = ai2thor.controller.Controller()
+        self.controller = ai2thor.controller.Controller(quality="High WebGL")
         if self.config.get('build_file_name'):
             # file must be in gym_ai2thor/build_files
             self.build_file_path = os.path.abspath(os.path.join(__file__, '../../build_files',
